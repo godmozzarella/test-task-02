@@ -56,15 +56,16 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
     setLoading(true)
 
     try {
+      let categoryId = Number(form.category) || 1
       const code = form.code.trim() === "" ? generateArticle() : form.code.trim()
 
       const payload = [{
         name: form.name,
         code: code,
-        description_short: form.shortDescription,
-        description_long: form.longDescription,
+        description_short: form.shortDescription || "Описание недоступно",
+        description_long: form.longDescription || "Длинное описание недоступно",
         marketplace_price: Number(form.price) || 0,
-        category: form.category ? Number(form.category) : 1,
+        category: categoryId,
         unit: 116,
         cashback_type: "lcard_cashback",
         seo_title: form.name || "SEO Title",
@@ -76,17 +77,31 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
         type: "product",
       }]
 
-      const response = await fetch("/api/product", {
+      let response = await fetch("/api/product", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
+      // Если сервер вернул ошибку про категорию, заменяем на 1 и повторяем
+      if (!response.ok) {
+        const text = await response.text()
+        if (text.includes("categorie не существует")) {
+          alert("Категория не существует она была заменена на стандартную 1")
+          categoryId = 1
+          payload[0].category = 1
+
+          response = await fetch("/api/product", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          })
+        }
+      }
+
       if (!response.ok) {
         const errorText = await response.text()
-        throw new Error("Failed to create product: " + errorText)
+        throw new Error("Не удалось создать товар: " + errorText)
       }
 
       await response.json()
@@ -107,7 +122,7 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
     } finally {
       setLoading(false)
     }
-  }
+}
 
   const generateDescriptions = async (name: string) => {
     const response = await fetch("/api/generate-description", {
