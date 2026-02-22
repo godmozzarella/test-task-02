@@ -6,7 +6,7 @@ import ProductForm from "../components/ProductForm"
 
 interface Product {
   name: string
-  article: string
+  code: string
   price: number
   category: string
 }
@@ -38,12 +38,12 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-muted/40 space-y-8 py-8">
-      <Card className="w-[500px]">
+      <Card className="w-[90%] sm:w-[70%] md:w-[50%] lg:w-[30%]">
         <CardHeader>
           <CardTitle>Создание карточки товара</CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent >
           <ProductForm onSuccess={fetchProducts} />
         </CardContent>
       </Card>
