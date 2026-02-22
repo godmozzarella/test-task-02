@@ -1,65 +1,50 @@
 "use client"
 
-import React from 'react'
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card"
+import ProductForm from "../components/ProductForm"
 
-export default function Home() {
-  const [loading, setLoading] = useState(false)
-
-  const [form, setForm] = useState({
-    name: "",
-    article: "",
-    price: "",
-    description: "",
-  })
-
-  //TODO: изменение формы
-  const handleChange = () => {
-    
-  }
-
-  //TODO: добавление товара
-  const handleSubmit = async () => {
-  
+interface Product {
+  name: string
+  code: string
+  price: number
+  category: string
 }
 
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([])
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/product", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      if (!response.ok) {
+        throw new Error("Failed to fetch products")
+      }
+      const data = await response.json()
+      setProducts(data)
+    } catch (error) {
+      alert((error as Error).message)
+    }
+  }
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-muted/40">
-      <Card className="w-[500px]">
+    <div className="flex flex-col items-center min-h-screen bg-muted/40 space-y-8 py-8">
+      <Card className="w-[90%] sm:w-[70%] md:w-[50%] lg:w-[30%]">
         <CardHeader>
           <CardTitle>Создание карточки товара</CardTitle>
         </CardHeader>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Название</Label>
-              <Input name="name" value={form.name} onChange={handleChange} />
-            </div>
-
-            <div>
-              <Label>Артикул</Label>
-              <Input name="article" value={form.article} onChange={handleChange} />
-            </div>
-
-            <div>
-              <Label>Цена</Label>
-              <Input name="price" value={form.price} onChange={handleChange} />
-            </div>
-
-            <div>
-              <Label>Описание</Label>
-              <Input name="description" value={form.description} onChange={handleChange} />
-            </div>
-
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Создание..." : "Создать товар"}
-            </Button>
-          </form>
+        <CardContent >
+          <ProductForm onSuccess={fetchProducts} />
         </CardContent>
       </Card>
     </div>
